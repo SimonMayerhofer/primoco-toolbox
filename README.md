@@ -48,6 +48,12 @@ pip3 install chromedriver-py
 python3 download-export.py
 ```
 
+## Troubleshooting
+
+### Exception: Downloaded file not found.
+Try to make sure, that the downloads folder is set correctly and that it has proper permissions.
+Maybe `chmod -R 777` it, but this might be a security issue.
+
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
