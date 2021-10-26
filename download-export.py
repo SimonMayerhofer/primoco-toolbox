@@ -15,6 +15,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import os
+import codecs
+import shutil
 
 class PrimocoExportDownloader():
     RUN_LOCALLY = False
@@ -84,6 +86,17 @@ class PrimocoExportDownloader():
             else:
                 raise Exception("Downloaded file not found.")
 
+        print('Change file encoding from UTF-16 to UTF-8.')
+        self.utf16_to_utf8(existing)
+
+    def utf16_to_utf8(self, file):
+        try:
+            with codecs.open(file, encoding="utf-16") as input_file:
+                with codecs.open(file + ".utf-8", "w", encoding="utf-8") as output_file:
+                    shutil.copyfileobj(input_file, output_file)
+            os.rename(file + ".utf-8", file)
+        except FileNotFoundError:
+            print("😰  That file doesn't seem to exist.")
 
     def quitBrowser(self):
         print('Quit the browser')
