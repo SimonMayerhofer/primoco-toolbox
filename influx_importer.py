@@ -14,7 +14,8 @@ class InfluxImporter():
     def __init__(self, filepath):
         self.filepath = filepath
         self.measurement = "bookings"
-        self.tagColumns = ['Entry Type']
+        # id must be present, so we can ensure, all rows are unique (and be able to be imported)
+        self.tagColumns = ['id', 'Entry Type']
 
         self.client = InfluxDBClient(
             url="http://localhost:8086",
@@ -39,15 +40,17 @@ class InfluxImporter():
         )
 
     def startImport(self):
-        write_client = self.client.write_api(write_options=SYNCHRONOUS)
-
         dataFrame = pandas.read_csv(self.filepath, sep=";", skiprows=1, decimal=",", encoding="utf-8")
-
         # Use the to_datetime() function to set the timestamp column of dataframe to a datetime object
         dataFrame['Date'] = pandas.to_datetime(dataFrame['Date'], format="%d.%m.%Y" )
+        # print table info data
+        dataFrame.info()
+        # add id column with unique IDs, to be able to import all data
+        dataFrame["id"] = dataFrame.index + 1
         # Set the datetime column as the index of the dataframe
         dataFrame.set_index(['Date'], inplace = True)
 
+        write_client = self.client.write_api(write_options=SYNCHRONOUS)
         write_client.write(
             os.environ['INFLUXDB_BUCKET'],
             record=dataFrame,
