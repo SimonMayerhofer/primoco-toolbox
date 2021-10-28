@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 # install the required packages:
-# - pip3 install -U selenium
-# - pip3 install -U python-dotenv
 # - (only if local browser on your host machine should be used:) pip3 install chromedriver-py
 
 from selenium import webdriver
@@ -18,7 +16,7 @@ import os
 import codecs
 import shutil
 
-class PrimocoExportDownloader():
+class ExportDownloader():
     RUN_LOCALLY = False
 
     def __init__(self):
@@ -101,13 +99,3 @@ class PrimocoExportDownloader():
     def quitBrowser(self):
         print('Quit the browser')
         self.browser.quit()
-
-
-if __name__ == '__main__':
-    ped = PrimocoExportDownloader()
-    try:
-        ped.login()
-        ped.download()
-    finally:
-        # make sure the driver connection is properly closed in any case.
-        ped.quitBrowser()

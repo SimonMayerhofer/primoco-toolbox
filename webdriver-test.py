@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # install the required packages:
-# - pip3 install selenium
 # - (only if local browser on your host machine should be used:) pip3 install chromedriver-py
 
 """Tests that the remote webdriver works."""

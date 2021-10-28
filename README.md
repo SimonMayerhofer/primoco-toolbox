@@ -1,6 +1,9 @@
-# Primoco Selenium Export
+# Primoco Toolbox
 
-Primoco Selenium Export is a small tool to download a [Primoco](https://primoco.me/en/) CSV export with the help of Selenium.
+Primoco Toolbox is a small tool for data handling from [Primoco](https://primoco.me/en/).
+The currently implemented functions are:
+- CSV export with the help of Selenium
+- Import of the CSV into InfluxDB Database
 
 ## Requirements
 - Google Chrome either locally or in a docker selenium container
@@ -12,6 +15,8 @@ Primoco Selenium Export is a small tool to download a [Primoco](https://primoco.
 ```bash
 pip3 install -U selenium
 pip3 install -U python-dotenv
+pip3 install -U pandas
+pip3 install -U 'influxdb-client[ciso]'
 ```
 
 2. Make sure to rename the file `example.env` to `.env` and update the variables accordingly.
@@ -32,21 +37,27 @@ python3 webdriver-test.py
 ```
 3. Run the script
 ```bash
-python3 download-export.py
+python3 primoco_toolbox.py --all
+```
+
+If you want to run only the export from Primoco run:
+```bash
+python3 primoco_toolbox.py --export-download
+```
+
+If you want to run only the import to InfluxDB run:
+```bash
+python3 primoco_toolbox.py --influx-import
 ```
 
 
-### Local Browser
+### Preparation to run with Local Browser
 
 1. In order to use your installed Chrome browser you might need to install chromedrivers:
 ```bash
 pip3 install chromedriver-py
 ```
 2. Make sure to set the `RUN_LOCALLY` constant in the `PrimocoExportDownloader` class to `True`.
-3. Run
-```bash
-python3 download-export.py
-```
 
 ## Troubleshooting
 

@@ -1,0 +1,56 @@
+#!/usr/bin/env python3
+
+# load environment variables from .env file.
+from dotenv import load_dotenv
+load_dotenv()
+
+import os
+
+import pandas
+from influxdb_client import InfluxDBClient
+from influxdb_client.client.write_api import SYNCHRONOUS
+
+class InfluxImporter():
+    def __init__(self, filepath):
+        self.filepath = filepath
+        self.measurement = "bookings"
+        self.tagColumns = ['Entry Type']
+
+        self.client = InfluxDBClient(
+            url="http://localhost:8086",
+            token=os.environ['INFLUXDB_TOKEN'],
+            org=os.environ['INFLUXDB_ORG']
+        )
+
+    def closeClient(self):
+        self.client.close()
+
+    def deleteExistingData(self):
+        delete_api = self.client.delete_api()
+        start = "1970-01-01T00:00:00Z"
+        stop = "2200-01-01T00:00:00Z"
+
+        delete_api.delete(
+            start,
+            stop,
+            '_measurement="' + self.measurement + '"',
+            bucket=os.environ['INFLUXDB_BUCKET'],
+            org=os.environ['INFLUXDB_ORG']
+        )
+
+    def startImport(self):
+        write_client = self.client.write_api(write_options=SYNCHRONOUS)
+
+        dataFrame = pandas.read_csv(self.filepath, sep=";", skiprows=1, decimal=",", encoding="utf-8")
+
+        # Use the to_datetime() function to set the timestamp column of dataframe to a datetime object
+        dataFrame['Date'] = pandas.to_datetime(dataFrame['Date'], format="%d.%m.%Y" )
+        # Set the datetime column as the index of the dataframe
+        dataFrame.set_index(['Date'], inplace = True)
+
+        write_client.write(
+            os.environ['INFLUXDB_BUCKET'],
+            record=dataFrame,
+            data_frame_measurement_name=self.measurement,
+            data_frame_tag_columns=self.tagColumns
+        )
