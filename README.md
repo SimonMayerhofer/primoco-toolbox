@@ -1,6 +1,6 @@
 # Primoco Toolbox
 
-Primoco Toolbox is a small tool for data handling from [Primoco](https://primoco.me/en/).
+Primoco Toolbox is a small tool for handling data exports from [Primoco](https://primoco.me/en/).
 The currently implemented functions are:
 - CSV export with the help of Selenium
 - Import of the CSV into InfluxDB Database
