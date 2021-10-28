@@ -43,12 +43,12 @@ class InfluxImporter():
         dataFrame = pandas.read_csv(self.filepath, sep=";", skiprows=1, decimal=",", encoding="utf-8")
         # Use the to_datetime() function to set the timestamp column of dataframe to a datetime object
         dataFrame['Date'] = pandas.to_datetime(dataFrame['Date'], format="%d.%m.%Y" )
-        # print table info data
-        dataFrame.info()
         # add id column with unique IDs, to be able to import all data
         dataFrame["id"] = dataFrame.index + 1
         # Set the datetime column as the index of the dataframe
         dataFrame.set_index(['Date'], inplace = True)
+        # print table info data
+        dataFrame.info()
 
         write_client = self.client.write_api(write_options=SYNCHRONOUS)
         write_client.write(
