@@ -61,10 +61,23 @@ class InfluxImporter():
         # print table info data
         dataFrame.info()
 
+        # write entries in batches to circumvent timeouts
+        print("start writing " + str(len(dataFrame)) + " entries:")
         write_client = self.client.write_api(write_options=SYNCHRONOUS)
-        write_client.write(
-            os.environ['INFLUXDB_BUCKET'],
-            record=dataFrame,
-            data_frame_measurement_name=self.measurement,
-            data_frame_tag_columns=self.tagColumns
-        )
+        interval = 1000
+        start = 0
+        end = interval
+        while end < len(dataFrame) + interval:
+            if end > len(dataFrame):
+                end = len(dataFrame)
+            print("write " + str(start) + "-" + str(end))
+            record = dataFrame.iloc[start:end]
+            write_client.write(
+                os.environ['INFLUXDB_BUCKET'],
+                record=record,
+                data_frame_measurement_name=self.measurement,
+                data_frame_tag_columns=self.tagColumns
+            )
+            start = end
+            end = end + interval
+
