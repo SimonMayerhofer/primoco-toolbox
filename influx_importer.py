@@ -5,8 +5,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import os
+from datetime import timedelta
 
-import pandas
+import pandas as pd
 from influxdb_client import InfluxDBClient
 from influxdb_client.client.write_api import SYNCHRONOUS
 
@@ -15,7 +16,7 @@ class InfluxImporter():
         self.filepath = filepath
         self.measurement = "bookings"
         # id must be present, so we can ensure, all rows are unique (and be able to be imported)
-        self.tagColumns = ['id', 'Entry Type']
+        self.tagColumns = ['Entry Type']
 
         self.client = InfluxDBClient(
             url="http://localhost:8086",
@@ -55,10 +56,16 @@ class InfluxImporter():
         #)
 
     def startImport(self):
-        dataFrame = pandas.read_csv(self.filepath, sep=";", skiprows=1, decimal=",", encoding="utf-8")
+        dataFrame = pd.read_csv(self.filepath, sep=";", skiprows=1, decimal=",", encoding="utf-8")
         # Use the to_datetime() function to set the timestamp column of dataframe to a datetime object
-        dataFrame['Date'] = pandas.to_datetime(dataFrame['Date'], format="%d.%m.%Y" )
-        # add id column with unique IDs, to be able to import all data
+        dataFrame['Date'] = pd.to_datetime(dataFrame['Date'], format="%d.%m.%Y" )
+
+        # add microseconds to datetime to make sure all entries are unique and imported.
+        # https://docs.influxdata.com/influxdb/v2.0/write-data/best-practices/duplicate-points/
+        for i in dataFrame.index:
+            dataFrame.at[i, 'Date'] = dataFrame.at[i, 'Date'] + timedelta(microseconds=i)
+
+        # add ID column
         dataFrame["id"] = dataFrame.index + 1
         # Set the datetime column as the index of the dataframe
         dataFrame.set_index(['Date'], inplace = True)
