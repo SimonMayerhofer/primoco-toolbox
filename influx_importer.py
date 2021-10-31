@@ -27,12 +27,16 @@ class InfluxImporter():
         self.client.close()
 
     def deleteExistingData(self):
-        print("delete bucket " + os.environ['INFLUXDB_BUCKET'])
+        print("trying to delete bucket " + os.environ['INFLUXDB_BUCKET'])
         buckets_api = self.client.buckets_api()
         bucket = buckets_api.find_bucket_by_name(os.environ['INFLUXDB_BUCKET'])
-        buckets_api.delete_bucket(bucket)
+        if not bucket == None:
+            buckets_api.delete_bucket(bucket)
+        else:
+            print("bucket not found")
 
-        print("create bucket again")
+
+        print("create bucket " + os.environ['INFLUXDB_BUCKET'])
         buckets_api.create_bucket(
             bucket_name=os.environ['INFLUXDB_BUCKET'],
             org=os.environ['INFLUXDB_ORG']
