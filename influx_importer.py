@@ -13,15 +13,20 @@ from influxdb_client.client.write_api import SYNCHRONOUS
 
 class InfluxImporter():
     def __init__(self, filepath):
+        self.url = "http://localhost:8086"
+        self.token = os.environ['INFLUXDB_TOKEN']
+        self.org = os.environ['INFLUXDB_ORG']
+        self.bucket = os.environ['INFLUXDB_BUCKET']
+
         self.filepath = filepath
         self.measurement = "bookings"
         # id must be present, so we can ensure, all rows are unique (and be able to be imported)
         self.tagColumns = ['Entry Type']
 
         self.client = InfluxDBClient(
-            url="http://localhost:8086",
-            token=os.environ['INFLUXDB_TOKEN'],
-            org=os.environ['INFLUXDB_ORG'],
+            url=self.url,
+            token=self.token,
+            org=self.org,
             timeout=120 * 1000 # 120 seconds
         )
 
@@ -29,19 +34,19 @@ class InfluxImporter():
         self.client.close()
 
     def deleteExistingData(self):
-        print("trying to delete bucket " + os.environ['INFLUXDB_BUCKET'])
+        print("trying to delete bucket " + self.bucket)
         buckets_api = self.client.buckets_api()
-        bucket = buckets_api.find_bucket_by_name(os.environ['INFLUXDB_BUCKET'])
+        bucket = buckets_api.find_bucket_by_name(self.bucket)
         if not bucket == None:
             buckets_api.delete_bucket(bucket)
         else:
             print("bucket not found")
 
 
-        print("create bucket " + os.environ['INFLUXDB_BUCKET'])
+        print("create bucket " + self.bucket)
         buckets_api.create_bucket(
-            bucket_name=os.environ['INFLUXDB_BUCKET'],
-            org=os.environ['INFLUXDB_ORG']
+            bucket_name=self.bucket,
+            org=self.org
         )
 
         #delete_api = self.client.delete_api()
@@ -52,7 +57,7 @@ class InfluxImporter():
         #    start,
         #    stop,
         #    '_measurement="' + self.measurement + '"',
-        #    bucket=os.environ['INFLUXDB_BUCKET'],
+        #    bucket=self.bucket,
         #    org=os.environ['INFLUXDB_ORG']
         #)
 
@@ -75,7 +80,7 @@ class InfluxImporter():
             print("write " + str(start) + "-" + str(end))
             record = dataFrame.iloc[start:end]
             write_client.write(
-                os.environ['INFLUXDB_BUCKET'],
+                self.bucket,
                 record=record,
                 data_frame_measurement_name=self.measurement,
                 data_frame_tag_columns=self.tagColumns
