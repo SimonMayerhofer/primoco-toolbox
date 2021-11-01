@@ -6,6 +6,7 @@ load_dotenv()
 
 import os
 from datetime import timedelta
+import html
 
 import pandas as pd
 from influxdb_client import InfluxDBClient
@@ -61,11 +62,11 @@ class InfluxImporter():
         #    org=os.environ['INFLUXDB_ORG']
         #)
 
-    def replaceHTMLEncodings(self, dataFrame, columns=['Category']):
+    def unescapeHTML(self, dataFrame, columns=['Category', 'Person', 'Account', 'Counter Account', 'Group', 'Note' ]):
         for col in columns:
             for i in dataFrame.index:
                 if type(dataFrame.at[i, col]) == str: # only replace string values
-                    dataFrame.at[i, col] = dataFrame.at[i, col].replace('&gt;', '>')
+                    dataFrame.at[i, col] = html.unescape(dataFrame.at[i, col])
 
     def writeDataFrameToInflux(self, dataFrame):
         # write entries in batches to circumvent timeouts
@@ -102,8 +103,8 @@ class InfluxImporter():
         print('Uniquify DateTime Column.')
         self.uniquifyDateTimeColumn(dataFrame)
 
-        print('Replace HTML encodings.')
-        self.replaceHTMLEncodings(dataFrame)
+        print('Unescape HTML.')
+        self.unescapeHTML(dataFrame)
 
         # add ID column
         dataFrame["id"] = dataFrame.index + 1
