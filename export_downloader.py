@@ -88,25 +88,12 @@ class ExportDownloader():
         print('Change file encoding from UTF-16 to UTF-8.')
         self.utf16_to_utf8(existing)
 
-        print('Replace HTML encodings.')
-        self.replaceHTMLEncodings(existing)
-
     def utf16_to_utf8(self, file):
         try:
             with codecs.open(file, encoding="utf-16") as input_file:
                 with codecs.open(file + ".utf-8", "w", encoding="utf-8") as output_file:
                     shutil.copyfileobj(input_file, output_file)
             os.rename(file + ".utf-8", file)
-        except FileNotFoundError:
-            print("😰  That file doesn't seem to exist.")
-
-    def replaceHTMLEncodings(self, file):
-        # https://stackoverflow.com/a/20593644/2180161
-        try:
-            with fileinput.FileInput(file, inplace=True, backup='.bak') as file:
-                for line in file:
-                    line = line.replace('&gt;', '>')
-                    print(line, end='')
         except FileNotFoundError:
             print("😰  That file doesn't seem to exist.")
 

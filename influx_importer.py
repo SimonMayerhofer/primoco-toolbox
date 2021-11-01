@@ -56,23 +56,13 @@ class InfluxImporter():
         #    org=os.environ['INFLUXDB_ORG']
         #)
 
-    def startImport(self):
-        dataFrame = pd.read_csv(self.filepath, sep=";", skiprows=1, decimal=",", encoding="utf-8")
-        # Use the to_datetime() function to set the timestamp column of dataframe to a datetime object
-        dataFrame['Date'] = pd.to_datetime(dataFrame['Date'], format="%d.%m.%Y" )
+    def replaceHTMLEncodings(self, dataFrame, columns=['Category']):
+        for col in columns:
+            for i in dataFrame.index:
+                if type(dataFrame.at[i, col]) == str: # only replace string values
+                    dataFrame.at[i, col] = dataFrame.at[i, col].replace('&gt;', '>')
 
-        # add microseconds to datetime to make sure all entries are unique and imported.
-        # https://docs.influxdata.com/influxdb/v2.0/write-data/best-practices/duplicate-points/
-        for i in dataFrame.index:
-            dataFrame.at[i, 'Date'] = dataFrame.at[i, 'Date'] + timedelta(microseconds=i)
-
-        # add ID column
-        dataFrame["id"] = dataFrame.index + 1
-        # Set the datetime column as the index of the dataframe
-        dataFrame.set_index(['Date'], inplace = True)
-        # print table info data
-        dataFrame.info()
-
+    def writeDataFrameToInflux(self, dataFrame):
         # write entries in batches to circumvent timeouts
         print("start writing " + str(len(dataFrame)) + " entries:")
         write_client = self.client.write_api(write_options=SYNCHRONOUS)
@@ -92,4 +82,30 @@ class InfluxImporter():
             )
             start = end
             end = end + interval
+
+    def uniquifyDateTimeColumn(self, dataFrame, column='Date'):
+        # add microseconds to datetime to make sure all entries are unique and imported.
+        # https://docs.influxdata.com/influxdb/v2.0/write-data/best-practices/duplicate-points/
+        for i in dataFrame.index:
+            dataFrame.at[i, column] = dataFrame.at[i, column] + timedelta(microseconds=i)
+
+    def startImport(self):
+        dataFrame = pd.read_csv(self.filepath, sep=";", skiprows=1, decimal=",", encoding="utf-8")
+        # Use the to_datetime() function to set the timestamp column of dataframe to a datetime object
+        dataFrame['Date'] = pd.to_datetime(dataFrame['Date'], format="%d.%m.%Y" )
+
+        print('Uniquify DateTime Column.')
+        self.uniquifyDateTimeColumn(dataFrame)
+
+        print('Replace HTML encodings.')
+        self.replaceHTMLEncodings(dataFrame)
+
+        # add ID column
+        dataFrame["id"] = dataFrame.index + 1
+        # Set the datetime column as the index of the dataframe
+        dataFrame.set_index(['Date'], inplace = True)
+        # print table info data
+        dataFrame.info()
+
+        self.writeDataFrameToInflux(dataFrame)
 
