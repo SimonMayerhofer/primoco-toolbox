@@ -21,7 +21,12 @@ class InfluxImporter():
 
         self.filepath = filepath
         self.measurement = "bookings"
-        self.tagColumns = ['Entry Type']
+        # CSV Header:
+        # Date;Entry Type;Value;Currencs;Category;Person;Account;Counter Account;Group;Note;Recurring;
+
+        # BUG: adding "Account" leads to "invalid field format" error. Adding account but not Category works though.
+        # seems like to be some limit, which is not documented.
+        self.tagColumns = ['Entry Type', 'Category', 'Person']
 
         self.client = InfluxDBClient(
             url=self.url,
@@ -67,6 +72,18 @@ class InfluxImporter():
                 if type(dataFrame.at[i, col]) == str: # only replace string values
                     dataFrame.at[i, col] = html.unescape(dataFrame.at[i, col])
 
+    def prepareTagColumns(self, dataFrame):
+        # some special characters need to be escaped
+        # https://docs.influxdata.com/influxdb/v2.0/reference/syntax/line-protocol/#special-characters
+        for col in self.tagColumns:
+            for i in dataFrame.index:
+                if type(dataFrame.at[i, col]) == str: # only replace string values
+                    val = dataFrame.at[i, col]
+                    val = val.replace(' ', '\ ')
+                    val = val.replace(',', '\,')
+                    val = val.replace('=', '\=')
+                    dataFrame.at[i, col] = val
+
     def writeDataFrameToInflux(self, dataFrame):
         # write entries in batches to circumvent timeouts
         print("start writing " + str(len(dataFrame)) + " entries:")
@@ -104,6 +121,9 @@ class InfluxImporter():
 
         print('Unescape HTML.')
         self.unescapeHTML(dataFrame)
+
+        print('Prepare tag columns.')
+        self.prepareTagColumns(dataFrame)
 
         # Set the datetime column as the index of the dataframe
         dataFrame.set_index(['Date'], inplace = True)
