@@ -21,7 +21,8 @@ class InfluxImporter():
         self.client = InfluxDBClient(
             url="http://localhost:8086",
             token=os.environ['INFLUXDB_TOKEN'],
-            org=os.environ['INFLUXDB_ORG']
+            org=os.environ['INFLUXDB_ORG'],
+            timeout=120 * 1000 # 120 seconds
         )
 
     def closeClient(self):
