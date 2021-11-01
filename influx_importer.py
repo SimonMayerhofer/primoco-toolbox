@@ -21,7 +21,6 @@ class InfluxImporter():
 
         self.filepath = filepath
         self.measurement = "bookings"
-        # id must be present, so we can ensure, all rows are unique (and be able to be imported)
         self.tagColumns = ['Entry Type']
 
         self.client = InfluxDBClient(
@@ -106,8 +105,6 @@ class InfluxImporter():
         print('Unescape HTML.')
         self.unescapeHTML(dataFrame)
 
-        # add ID column
-        dataFrame["id"] = dataFrame.index + 1
         # Set the datetime column as the index of the dataframe
         dataFrame.set_index(['Date'], inplace = True)
         # print table info data
