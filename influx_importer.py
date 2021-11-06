@@ -23,10 +23,7 @@ class InfluxImporter():
         self.measurement = "bookings"
         # CSV Header:
         # Date;Entry Type;Value;Currencs;Category;Person;Account;Counter Account;Group;Note;Recurring;
-
-        # BUG: adding "Account" leads to "invalid field format" error. Adding account but not Category works though.
-        # seems like to be some limit, which is not documented.
-        self.tagColumns = ['Entry Type', 'Category', 'Person']
+        self.tagColumns = ['Entry Type', 'Person', 'Category', 'Account']
 
         self.client = InfluxDBClient(
             url=self.url,
@@ -66,11 +63,17 @@ class InfluxImporter():
         #    org=os.environ['INFLUXDB_ORG']
         #)
 
-    def unescapeHTML(self, dataFrame, columns=['Category', 'Person', 'Account', 'Counter Account', 'Group', 'Note' ]):
+    def prepareData(self, dataFrame, columns=['Category', 'Person', 'Account', 'Counter Account', 'Group', 'Note' ]):
         for col in columns:
             for i in dataFrame.index:
                 if type(dataFrame.at[i, col]) == str: # only replace string values
-                    dataFrame.at[i, col] = html.unescape(dataFrame.at[i, col])
+                    val = dataFrame.at[i, col]
+                    # unescape html escaped symbols
+                    val = html.unescape(val)
+                    # fix bug which lets the code fail, if " ," is present at a value.
+                    # see: https://community.influxdata.com/t/writing-entries-gives-invalid-field-format-error-but-only-if-2-tags-are-added-together-separately-works-fine/22368?u=s3n
+                    val = val.replace(' ,', ',')
+                    dataFrame.at[i, col] = val
 
     def prepareTagColumns(self, dataFrame):
         # some special characters need to be escaped
@@ -119,8 +122,8 @@ class InfluxImporter():
         print('Uniquify DateTime Column.')
         self.uniquifyDateTimeColumn(dataFrame)
 
-        print('Unescape HTML.')
-        self.unescapeHTML(dataFrame)
+        print('Preparing the data (e.g. unescaping).')
+        self.prepareData(dataFrame)
 
         print('Prepare tag columns.')
         self.prepareTagColumns(dataFrame)
