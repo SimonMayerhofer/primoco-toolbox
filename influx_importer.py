@@ -23,7 +23,7 @@ class InfluxImporter():
         self.measurement = "bookings"
         # CSV Header:
         # Date;Entry Type;Value;Currencs;Category;Person;Account;Counter Account;Group;Note;Recurring;
-        self.tagColumns = ['Entry Type', 'Person', 'Category', 'Account']
+        self.tagColumns = ['Entry Type', 'Person', 'Category', 'Account', 'Counter Account']
 
         self.client = InfluxDBClient(
             url=self.url,
