@@ -66,7 +66,7 @@ class InfluxImporter():
         print("Delete bucket " + bucketName)
         buckets_api = self.client.buckets_api()
         bucket = buckets_api.find_bucket_by_name(bucketName)
-        if not bucket == None:
+        if bucket != None:
             buckets_api.delete_bucket(bucket)
         else:
             print("bucket not found")
@@ -152,12 +152,12 @@ class InfluxImporter():
 
         buckets_api = self.client.buckets_api()
         bucket = buckets_api.find_bucket_by_name(self.bucketName)
-        if not bucket == None:
+        if bucket != None:
             # swith current live bucket with the temporary one
             self.renameBucket(self.bucketName, self.bucketName + "_old")
 
         self.renameBucket(self.bucketName + "_temp", self.bucketName)
 
-        if not bucket == None:
+        if bucket != None:
             # delete old bucket data
             self.deleteBucket(self.bucketName + "_old")
