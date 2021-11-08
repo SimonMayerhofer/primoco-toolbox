@@ -42,7 +42,7 @@ class InfluxImporter():
             bucketName = self.bucketName
 
         buckets_api = self.client.buckets_api()
-        print("create bucket " + bucketName)
+        print("Create bucket " + bucketName)
 
         buckets_api.create_bucket(
             bucket_name=bucketName,
@@ -50,6 +50,7 @@ class InfluxImporter():
         )
 
     def renameBucket(self, bucketName, newName):
+        print("Rename bucket '" + bucketName + "' -> '" + newName + "'")
         buckets_api = self.client.buckets_api()
         service = BucketsService(self.client.api_client)
 
@@ -62,7 +63,7 @@ class InfluxImporter():
         if bucketName is None:
             bucketName = self.bucketName
 
-        print("trying to delete bucket " + bucketName)
+        print("Delete bucket " + bucketName)
         buckets_api = self.client.buckets_api()
         bucket = buckets_api.find_bucket_by_name(bucketName)
         if not bucket == None:
@@ -99,7 +100,7 @@ class InfluxImporter():
             bucketName = self.bucketName
 
         # write entries in batches to circumvent timeouts
-        print("start writing " + str(len(dataFrame)) + " entries:")
+        print("start writing " + str(len(dataFrame)) + " entries to " + bucketName)
         write_client = self.client.write_api(write_options=SYNCHRONOUS)
         interval = 1000
         start = 0
