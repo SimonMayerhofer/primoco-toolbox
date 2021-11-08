@@ -12,12 +12,14 @@ import pandas as pd
 from influxdb_client import InfluxDBClient
 from influxdb_client.client.write_api import SYNCHRONOUS
 
+from influxdb_client import BucketRetentionRules, BucketsService, PatchBucketRequest
+
 class InfluxImporter():
     def __init__(self, filepath):
         self.url = "http://localhost:8086"
         self.token = os.environ['INFLUXDB_TOKEN']
         self.org = os.environ['INFLUXDB_ORG']
-        self.bucket = os.environ['INFLUXDB_BUCKET']
+        self.bucketName = os.environ['INFLUXDB_BUCKET']
 
         self.filepath = filepath
         self.measurement = "bookings"
@@ -35,21 +37,38 @@ class InfluxImporter():
     def closeClient(self):
         self.client.close()
 
-    def deleteExistingData(self):
-        print("trying to delete bucket " + self.bucket)
+    def createBucket(self, bucketName=None):
+        if bucketName is None:
+            bucketName = self.bucketName
+
         buckets_api = self.client.buckets_api()
-        bucket = buckets_api.find_bucket_by_name(self.bucket)
+        print("create bucket " + bucketName)
+
+        buckets_api.create_bucket(
+            bucket_name=bucketName,
+            org=self.org
+        )
+
+    def renameBucket(self, bucketName, newName):
+        buckets_api = self.client.buckets_api()
+        service = BucketsService(self.client.api_client)
+
+        bucket = buckets_api.find_bucket_by_name(bucketName)
+        request = PatchBucketRequest(name=newName)
+        service.patch_buckets_id(bucket_id=bucket.id, patch_bucket_request=request)
+
+
+    def deleteBucket(self, bucketName=None):
+        if bucketName is None:
+            bucketName = self.bucketName
+
+        print("trying to delete bucket " + bucketName)
+        buckets_api = self.client.buckets_api()
+        bucket = buckets_api.find_bucket_by_name(bucketName)
         if not bucket == None:
             buckets_api.delete_bucket(bucket)
         else:
             print("bucket not found")
-
-
-        print("create bucket " + self.bucket)
-        buckets_api.create_bucket(
-            bucket_name=self.bucket,
-            org=self.org
-        )
 
         #delete_api = self.client.delete_api()
         #start = "1970-01-01T00:00:00Z"
@@ -87,20 +106,24 @@ class InfluxImporter():
                     val = val.replace('=', '\=')
                     dataFrame.at[i, col] = val
 
-    def writeDataFrameToInflux(self, dataFrame):
+    def writeDataFrameToInflux(self, dataFrame, bucketName=None):
+        if bucketName is None:
+            bucketName = self.bucketName
+
         # write entries in batches to circumvent timeouts
         print("start writing " + str(len(dataFrame)) + " entries:")
         write_client = self.client.write_api(write_options=SYNCHRONOUS)
         interval = 1000
         start = 0
         end = interval
+
         while end < len(dataFrame) + interval:
             if end > len(dataFrame):
                 end = len(dataFrame)
             print("write " + str(start) + "-" + str(end))
             record = dataFrame.iloc[start:end]
             write_client.write(
-                self.bucket,
+                bucketName,
                 record=record,
                 data_frame_measurement_name=self.measurement,
                 data_frame_tag_columns=self.tagColumns
@@ -133,5 +156,13 @@ class InfluxImporter():
         # print table info data
         dataFrame.info()
 
-        self.writeDataFrameToInflux(dataFrame)
+        # create temporary bucket and write all the data to it
+        self.createBucket(self.bucketName + "_temp")
+        self.writeDataFrameToInflux(dataFrame, self.bucketName + "_temp")
 
+        # swith current live bucket with the temporary one
+        self.renameBucket(self.bucketName, self.bucketName + "_old")
+        self.renameBucket(self.bucketName + "_temp", self.bucketName)
+
+        # delete old bucket data
+        self.deleteBucket(self.bucketName + "_old")

@@ -19,8 +19,6 @@ def influxImport():
         filepath = os.path.join(os.environ['DOWNLOAD_LOCATION'], "bookings-current.csv"),
     )
     try:
-        print("Delete existing data...")
-        importer.deleteExistingData()
         print("Start import...")
         importer.startImport()
     finally:
