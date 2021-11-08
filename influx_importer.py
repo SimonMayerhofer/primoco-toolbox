@@ -70,18 +70,6 @@ class InfluxImporter():
         else:
             print("bucket not found")
 
-        #delete_api = self.client.delete_api()
-        #start = "1970-01-01T00:00:00Z"
-        #stop = "2200-01-01T00:00:00Z"
-
-        #delete_api.delete(
-        #    start,
-        #    stop,
-        #    '_measurement="' + self.measurement + '"',
-        #    bucket=self.bucket,
-        #    org=os.environ['INFLUXDB_ORG']
-        #)
-
     def prepareData(self, dataFrame, columns=['Category', 'Person', 'Account', 'Counter Account', 'Group', 'Note' ]):
         for col in columns:
             for i in dataFrame.index:
