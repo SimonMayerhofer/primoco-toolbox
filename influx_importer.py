@@ -146,12 +146,18 @@ class InfluxImporter():
         dataFrame.info()
 
         # create temporary bucket and write all the data to it
+        self.deleteBucket(self.bucketName + "_temp")
         self.createBucket(self.bucketName + "_temp")
         self.writeDataFrameToInflux(dataFrame, self.bucketName + "_temp")
 
-        # swith current live bucket with the temporary one
-        self.renameBucket(self.bucketName, self.bucketName + "_old")
+        buckets_api = self.client.buckets_api()
+        bucket = buckets_api.find_bucket_by_name(self.bucketName)
+        if not bucket == None:
+            # swith current live bucket with the temporary one
+            self.renameBucket(self.bucketName, self.bucketName + "_old")
+
         self.renameBucket(self.bucketName + "_temp", self.bucketName)
 
-        # delete old bucket data
-        self.deleteBucket(self.bucketName + "_old")
+        if not bucket == None:
+            # delete old bucket data
+            self.deleteBucket(self.bucketName + "_old")
