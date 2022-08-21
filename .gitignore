@@ -1,3 +1,5 @@
 /.env
 /__pycache__
 /bookings.csv
+/docker-compose.override.yml
+/data

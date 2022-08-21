@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S python3 -u
 # install the required packages:
 # - (only if local browser on your host machine should be used:) pip3 install chromedriver-py
 
@@ -21,9 +21,11 @@ from selenium import webdriver
 class RemoteGoogleTestCase(unittest.TestCase):
 
     def setUp(self):
+        options = webdriver.ChromeOptions()
+        options.add_argument("--headless")
         self.browser = webdriver.Remote(
-            command_executor='http://localhost:4444/wd/hub',
-            options=webdriver.ChromeOptions()
+            command_executor='http://chrome:4444/wd/hub',
+            options=options
 		)
         self.addCleanup(self.browser.quit)
 
@@ -33,4 +35,6 @@ class RemoteGoogleTestCase(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    print("\n\n=====================================================================\n")
     unittest.main(verbosity=2)
+

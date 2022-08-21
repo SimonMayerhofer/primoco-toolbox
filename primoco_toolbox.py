@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S python3 -u
 
 import sys, getopt, os
 
@@ -16,7 +16,7 @@ def exportDownload():
 
 def influxImport():
     importer = InfluxImporter(
-        filepath = os.path.join(os.environ['DOWNLOAD_LOCATION'], "bookings-current.csv"),
+        filepath = os.path.join(os.getcwd(), 'data', 'chrome-downloads', "bookings-current.csv"),
     )
     try:
         print("Start import...")

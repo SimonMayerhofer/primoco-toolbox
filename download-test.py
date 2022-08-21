@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S python3 -u
 # install the required packages:
 # - pip3 install -U selenium
 # - pip3 install -U python-dotenv
@@ -26,7 +26,7 @@ class PrimocoExportDownloader():
             self.browser = webdriver.Chrome(executable_path=binary_path)
         else:
             self.browser = webdriver.Remote(
-                command_executor='http://localhost:4444/wd/hub', # selenium in Docker
+                command_executor='http://chrome:4444/wd/hub', # selenium in Docker
                 options=webdriver.ChromeOptions()
             )
 
@@ -35,8 +35,8 @@ class PrimocoExportDownloader():
         self.browser.get('https://www.mediadudes.de/test.csv')
         time.sleep(5)
 
-        existing = os.path.join(os.environ['DOWNLOAD_LOCATION'], "test-current.csv")
-        downloaded = os.path.join(os.environ['DOWNLOAD_LOCATION'], "test.csv")
+        existing = os.path.join(os.getcwd(), 'data', 'chrome-downloads', "test-current.csv")
+        downloaded = os.path.join(os.getcwd(), 'data', 'chrome-downloads', "test.csv")
 
         # delete existing export + rename downloaded export
         if os.path.exists(existing):

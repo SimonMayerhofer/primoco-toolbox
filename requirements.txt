@@ -1,0 +1,4 @@
+selenium == 4.* # https://pypi.org/project/selenium/
+python-dotenv == 0.* # https://pypi.org/project/python-dotenv/
+pandas == 1.* # https://pypi.org/project/pandas/
+influxdb-client[ciso] # https://pypi.org/project/influxdb-client/

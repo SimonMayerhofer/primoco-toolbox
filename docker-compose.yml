@@ -1,0 +1,64 @@
+version: "3"
+services:
+  chrome:
+    image: selenium/standalone-chrome:latest
+    restart: always
+    shm_size: 2g
+    privileged: true
+    hostname: chrome
+    ports:
+      - "4444:4444"
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    volumes:
+      - ./data/chrome-downloads:/home/seluser/Downloads:rw
+    networks:
+      - default
+
+  influxdb:
+    container_name: influxdb
+    image: influxdb:2.3
+    restart: always
+    ports:
+      - '8086:8086'
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    volumes:
+      - ./data/influxdb-storage:/var/lib/influxdb2
+      - ./data/influxdb-config:/etc/influxdb2
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=${INFLUXDB_USERNAME}
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${INFLUXDB_PASSWORD}
+      - DOCKER_INFLUXDB_INIT_ORG=${INFLUXDB_ORG}
+      - DOCKER_INFLUXDB_INIT_BUCKET=${INFLUXDB_BUCKET}
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUXDB_TOKEN}
+      - INFLUXDB_MONITOR_STORE_ENABLED=FALSE
+    networks:
+      - default
+
+  webdriver-test:
+    image: primoco-toolbox:latest
+    build: .
+    tty: true # make sure all output is logged immediately
+    command: ./webdriver-test.py
+    volumes:
+      - .:/primoco-toolbox
+    networks:
+      - default
+
+  start-import:
+    image: primoco-toolbox:latest
+    build: .
+    tty: true # make sure all output is logged immediately
+    command: ./primoco_toolbox.py --all
+    volumes:
+      - .:/primoco-toolbox
+    env_file:
+      - .env
+    networks:
+      - default
+
+networks:
+  default: # this network
+    driver: bridge

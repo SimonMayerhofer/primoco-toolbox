@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S python3 -u
 
 # load environment variables from .env file.
 from dotenv import load_dotenv
@@ -16,7 +16,7 @@ from influxdb_client import BucketRetentionRules, BucketsService, PatchBucketReq
 
 class InfluxImporter():
     def __init__(self, filepath):
-        self.url = "http://localhost:8086"
+        self.url = "http://influxdb:8086"
         self.token = os.environ['INFLUXDB_TOKEN']
         self.org = os.environ['INFLUXDB_ORG']
         self.bucketName = os.environ['INFLUXDB_BUCKET']
