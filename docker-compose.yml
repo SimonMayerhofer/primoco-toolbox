@@ -18,6 +18,11 @@ services:
   influxdb:
     container_name: influxdb
     image: influxdb:2.3
+    deploy:
+        resources:
+            limits:
+              #cpus: 0.50
+              memory: 4096M
     restart: always
     ports:
       - '8086:8086'
