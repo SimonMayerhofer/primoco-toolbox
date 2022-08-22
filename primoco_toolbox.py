@@ -24,10 +24,6 @@ def influxImport():
     finally:
         importer.closeClient()
 
-def updateAccountBalances():
-    print("Update account balances...")
-    os.system('./update-account-balances.sh')
-
 def main(argv):
     try:
         # options: String of option letters that the script wants to recognize.
@@ -54,14 +50,9 @@ def main(argv):
             #inputfile = arg
             influxImport()
 
-        elif opt == "--update-account-balances":
-            #inputfile = arg
-            updateAccountBalances()
-
         elif opt == "--all":
             exportDownload()
             influxImport()
-            updateAccountBalances()
 
 if __name__ == "__main__":
     main(sys.argv[1:])

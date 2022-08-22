@@ -150,6 +150,9 @@ class InfluxImporter():
         self.createBucket(self.bucketName + "_temp")
         self.writeDataFrameToInflux(dataFrame, self.bucketName + "_temp")
 
+        print("Update account balances...")
+        os.system('./update-account-balances.sh')
+
         buckets_api = self.client.buckets_api()
         bucket = buckets_api.find_bucket_by_name(self.bucketName)
         if bucket != None:
