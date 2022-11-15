@@ -8,8 +8,6 @@ services:
     hostname: chrome
     ports:
       - "4444:4444"
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
     volumes:
       - ./data/chrome-downloads:/home/seluser/Downloads:rw
     networks:
@@ -26,8 +24,6 @@ services:
     restart: always
     ports:
       - '8086:8086'
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
     volumes:
       - ./data/influxdb-storage:/var/lib/influxdb2
       - ./data/influxdb-config:/etc/influxdb2
